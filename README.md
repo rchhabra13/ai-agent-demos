@@ -93,7 +93,7 @@ EHR / Prompt Opinion Platform
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/clinical-trial-matchmaker.git
+git clone https://github.com/rchhabra13/fhir-trial-agent.git
 cd clinical-trial-matchmaker
 
 # Create a virtual environment
