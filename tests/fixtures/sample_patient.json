@@ -1,0 +1,135 @@
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 6,
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-001",
+        "name": [{ "use": "official", "family": "Johnson", "given": ["Maria"] }],
+        "birthDate": "1968-04-15",
+        "gender": "female",
+        "address": [
+          {
+            "use": "home",
+            "city": "Cleveland",
+            "state": "OH",
+            "postalCode": "44106",
+            "country": "United States"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "id": "cond-001",
+        "clinicalStatus": {
+          "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/condition-clinical", "code": "active" }]
+        },
+        "verificationStatus": {
+          "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status", "code": "confirmed" }]
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "254637007",
+              "display": "Non-small cell lung cancer"
+            },
+            {
+              "system": "http://hl7.org/fhir/sid/icd-10",
+              "code": "C34.10",
+              "display": "Malignant neoplasm of upper lobe, bronchus or lung"
+            }
+          ],
+          "text": "Non-small cell lung cancer, Stage IIIA"
+        },
+        "stage": [
+          {
+            "summary": {
+              "coding": [{ "display": "Stage IIIA" }],
+              "text": "Stage IIIA"
+            }
+          }
+        ],
+        "onsetDateTime": "2024-08-10",
+        "subject": { "reference": "Patient/patient-001" }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "id": "cond-002",
+        "clinicalStatus": {
+          "coding": [{ "code": "inactive" }]
+        },
+        "verificationStatus": {
+          "coding": [{ "code": "confirmed" }]
+        },
+        "code": {
+          "coding": [{ "system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2" }],
+          "text": "Type 2 Diabetes Mellitus"
+        },
+        "subject": { "reference": "Patient/patient-001" }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "med-001",
+        "status": "active",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1657992",
+              "display": "Pembrolizumab"
+            }
+          ],
+          "text": "Pembrolizumab 200mg IV every 3 weeks"
+        },
+        "dosageInstruction": [{ "text": "200mg IV infusion every 3 weeks" }],
+        "reasonCode": [{ "text": "Non-small cell lung cancer, first-line therapy" }],
+        "subject": { "reference": "Patient/patient-001" }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-hemoglobin",
+        "status": "final",
+        "code": {
+          "coding": [
+            { "system": "http://loinc.org", "code": "718-7", "display": "Hemoglobin [Mass/volume] in Blood" }
+          ],
+          "text": "Hemoglobin"
+        },
+        "valueQuantity": { "value": 10.8, "unit": "g/dL", "system": "http://unitsofmeasure.org" },
+        "referenceRange": [{ "low": { "value": 12.0 }, "high": { "value": 16.0 } }],
+        "interpretation": [
+          { "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "code": "L", "display": "Low" }] }
+        ],
+        "effectiveDateTime": "2025-11-01",
+        "subject": { "reference": "Patient/patient-001" }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obs-ecog",
+        "status": "final",
+        "code": {
+          "coding": [
+            { "system": "http://loinc.org", "code": "10334-1", "display": "ECOG Performance Status" }
+          ]
+        },
+        "valueInteger": 1,
+        "effectiveDateTime": "2025-11-01",
+        "subject": { "reference": "Patient/patient-001" }
+      }
+    }
+  ]
+}

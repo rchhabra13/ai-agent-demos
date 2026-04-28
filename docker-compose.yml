@@ -1,0 +1,22 @@
+services:
+  trial-matchmaker:
+    build:
+      context: .
+      target: runtime
+    image: clinical-trial-matchmaker:latest
+    container_name: trial-matchmaker
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-claude-opus-4-6}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    stdin_open: true   # Required for stdio MCP transport
+    tty: false
+    restart: unless-stopped
+    # Healthcheck via a lightweight probe
+    healthcheck:
+      test: ["CMD", "python", "-c", "import clinical_trial_matchmaker; print('ok')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
