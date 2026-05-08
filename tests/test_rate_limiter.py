@@ -1,10 +1,16 @@
 import pytest
+import fakeredis as _fakeredis
 import fakeredis.aioredis as fakeredis
 import httpx
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from app.middleware.rate_limiter import TokenBucketMiddleware
+
+
+def _make_redis():
+    server = _fakeredis.FakeServer()
+    return fakeredis.FakeRedis(server=server, decode_responses=True)
 
 
 def _make_app(capacity: int, window: int, fake_redis):
@@ -25,7 +31,7 @@ def _make_app(capacity: int, window: int, fake_redis):
 
 @pytest.mark.asyncio
 async def test_allows_within_limit():
-    fake = fakeredis.FakeRedis(decode_responses=True)
+    fake = _make_redis()
     app = _make_app(capacity=5, window=60, fake_redis=fake)
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
         for _ in range(5):
@@ -35,7 +41,7 @@ async def test_allows_within_limit():
 
 @pytest.mark.asyncio
 async def test_blocks_over_limit():
-    fake = fakeredis.FakeRedis(decode_responses=True)
+    fake = _make_redis()
     app = _make_app(capacity=3, window=60, fake_redis=fake)
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
         for _ in range(3):
@@ -47,7 +53,7 @@ async def test_blocks_over_limit():
 
 @pytest.mark.asyncio
 async def test_health_bypasses_rate_limit():
-    fake = fakeredis.FakeRedis(decode_responses=True)
+    fake = _make_redis()
     inner = FastAPI()
 
     @inner.get("/health")
@@ -63,7 +69,7 @@ async def test_health_bypasses_rate_limit():
 
 @pytest.mark.asyncio
 async def test_remaining_header_present():
-    fake = fakeredis.FakeRedis(decode_responses=True)
+    fake = _make_redis()
     app = _make_app(capacity=10, window=60, fake_redis=fake)
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
         r = await c.get("/test")

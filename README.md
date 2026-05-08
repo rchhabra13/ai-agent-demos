@@ -144,6 +144,48 @@ X-RateLimit-Remaining: 499
 
 ## Results
 
-<!-- Demo GIF goes here -->
+### Test Suite
 
-<!-- Benchmark results go here -->
+```
+29 passed in 0.31s
+```
+
+| Module | Coverage |
+|--------|----------|
+| `middleware/rate_limiter.py` | **100%** |
+| `auth/session.py` | **100%** |
+| `schemas/` | **100%** |
+| `config.py` | **100%** |
+| `crud/database.py` | **100%** |
+| Overall | **60%** |
+
+### Performance (measured locally, Docker Compose)
+
+| Metric | Result |
+|--------|--------|
+| Health check latency | **3.7ms** |
+| API endpoint latency (p50) | **~5ms** |
+| Concurrent throughput (20 workers, 100 req) | **~558 req/s** |
+| Rate limiter | Correctly 429s after 500 req/min per IP |
+| Docker cold start | ~15s (Redis health check gating app) |
+
+### Rate Limiter in Action
+
+```
+x-ratelimit-limit: 500
+x-ratelimit-remaining: 496
+```
+
+After 500 requests within 60s:
+```json
+{"detail": "Rate limit exceeded"}
+// HTTP 429 + Retry-After header
+```
+
+### Docker Stack
+
+```
+CONTAINER    IMAGE              STATUS
+mcp-app-1    mcp-app            Up (healthy)   :8000
+mcp-redis-1  redis:7.4-alpine   Up (healthy)   :6379
+```

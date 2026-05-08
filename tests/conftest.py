@@ -1,27 +1,36 @@
+import os
+
+# Set test DB to in-memory BEFORE any app modules are imported
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+
 import pytest
+import fakeredis as _fakeredis
 import fakeredis.aioredis as fakeredis
 import httpx
 from datetime import datetime, timedelta, timezone
 
-from fastapi import FastAPI
+from app.crud.database import create_db_tables
 from app.main import create_app
-from app.mcp_server.server import mcp, register_tools, set_app_state
 from app.schemas.auth import SessionData
 from app.auth.session import save_session
 
 
 @pytest.fixture
 async def redis():
-    r = fakeredis.FakeRedis(decode_responses=True)
+    # FakeServer auto-enables Lua when lupa is installed
+    server = _fakeredis.FakeServer()
+    r = fakeredis.FakeRedis(server=server, decode_responses=True)
     yield r
     await r.aclose()
 
 
 @pytest.fixture
-def app(redis):
+async def app(redis):
     application = create_app()
     application.state.redis = redis
     application.state.http_client = httpx.AsyncClient()
+    # Create tables (lifespan not run in tests)
+    await create_db_tables()
     return application
 
 
