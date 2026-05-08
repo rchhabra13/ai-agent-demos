@@ -1,19 +1,21 @@
 import pytest
-import fakeredis as _fakeredis
-import fakeredis.aioredis as fakeredis
+import redis.asyncio as aioredis
 import httpx
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from app.middleware.rate_limiter import TokenBucketMiddleware
 
-
-def _make_redis():
-    server = _fakeredis.FakeServer()
-    return fakeredis.FakeRedis(server=server, decode_responses=True)
+TEST_REDIS_URL = "redis://localhost:6379/15"
 
 
-def _make_app(capacity: int, window: int, fake_redis):
+async def _make_redis() -> aioredis.Redis:
+    r = aioredis.from_url(TEST_REDIS_URL, decode_responses=True)
+    await r.flushdb()
+    return r
+
+
+def _make_app(capacity: int, window: int, redis_client) -> FastAPI:
     inner = FastAPI()
 
     @inner.get("/test")
@@ -22,7 +24,7 @@ def _make_app(capacity: int, window: int, fake_redis):
 
     inner.add_middleware(
         TokenBucketMiddleware,
-        redis=fake_redis,
+        redis=redis_client,
         capacity=capacity,
         window_seconds=window,
     )
@@ -31,47 +33,51 @@ def _make_app(capacity: int, window: int, fake_redis):
 
 @pytest.mark.asyncio
 async def test_allows_within_limit():
-    fake = _make_redis()
-    app = _make_app(capacity=5, window=60, fake_redis=fake)
+    r = await _make_redis()
+    app = _make_app(capacity=5, window=60, redis_client=r)
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
         for _ in range(5):
-            r = await c.get("/test")
-            assert r.status_code == 200
+            resp = await c.get("/test")
+            assert resp.status_code == 200
+    await r.aclose()
 
 
 @pytest.mark.asyncio
 async def test_blocks_over_limit():
-    fake = _make_redis()
-    app = _make_app(capacity=3, window=60, fake_redis=fake)
+    r = await _make_redis()
+    app = _make_app(capacity=3, window=60, redis_client=r)
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
         for _ in range(3):
             await c.get("/test")
-        r = await c.get("/test")
-        assert r.status_code == 429
-        assert "Retry-After" in r.headers
+        resp = await c.get("/test")
+        assert resp.status_code == 429
+        assert "Retry-After" in resp.headers
+    await r.aclose()
 
 
 @pytest.mark.asyncio
 async def test_health_bypasses_rate_limit():
-    fake = _make_redis()
+    r = await _make_redis()
     inner = FastAPI()
 
     @inner.get("/health")
     async def health():
         return {"ok": True}
 
-    inner.add_middleware(TokenBucketMiddleware, redis=fake, capacity=1, window_seconds=3600)
+    inner.add_middleware(TokenBucketMiddleware, redis=r, capacity=1, window_seconds=3600)
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=inner), base_url="http://test") as c:
         for _ in range(5):
-            r = await c.get("/health")
-            assert r.status_code == 200
+            resp = await c.get("/health")
+            assert resp.status_code == 200
+    await r.aclose()
 
 
 @pytest.mark.asyncio
 async def test_remaining_header_present():
-    fake = _make_redis()
-    app = _make_app(capacity=10, window=60, fake_redis=fake)
+    r = await _make_redis()
+    app = _make_app(capacity=10, window=60, redis_client=r)
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
-        r = await c.get("/test")
-        assert "X-RateLimit-Remaining" in r.headers
-        assert int(r.headers["X-RateLimit-Remaining"]) == 9
+        resp = await c.get("/test")
+        assert "X-RateLimit-Remaining" in resp.headers
+        assert int(resp.headers["X-RateLimit-Remaining"]) == 9
+    await r.aclose()

@@ -4,8 +4,7 @@ import os
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 
 import pytest
-import fakeredis as _fakeredis
-import fakeredis.aioredis as fakeredis
+import redis.asyncio as aioredis
 import httpx
 from datetime import datetime, timedelta, timezone
 
@@ -14,13 +13,15 @@ from app.main import create_app
 from app.schemas.auth import SessionData
 from app.auth.session import save_session
 
+TEST_REDIS_URL = os.environ.get("TEST_REDIS_URL", "redis://localhost:6379/15")
+# DB 15 = dedicated test DB, auto-flushed after each test
+
 
 @pytest.fixture
 async def redis():
-    # FakeServer auto-enables Lua when lupa is installed
-    server = _fakeredis.FakeServer()
-    r = fakeredis.FakeRedis(server=server, decode_responses=True)
+    r = aioredis.from_url(TEST_REDIS_URL, decode_responses=True)
     yield r
+    await r.flushdb()   # clean up all keys written during the test
     await r.aclose()
 
 
