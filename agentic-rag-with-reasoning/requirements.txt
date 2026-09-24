@@ -1,0 +1,9 @@
+streamlit==1.42.2
+agno==1.1.6
+anthropic==0.47.1
+openai==1.64.0
+lancedb==0.6.20
+pandas==2.2.3
+numpy==2.2.3
+pyarrow==19.0.1
+python-dotenv==1.0.1

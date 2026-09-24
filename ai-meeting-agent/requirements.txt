@@ -1,0 +1,5 @@
+streamlit==1.42.2
+crewai==0.79.0
+crewai-tools==0.18.0
+anthropic==0.47.1
+python-dotenv==1.0.1

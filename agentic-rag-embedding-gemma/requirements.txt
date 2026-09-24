@@ -1,0 +1,6 @@
+streamlit==1.42.2
+agno==1.1.6
+lancedb==0.6.20
+ollama==0.4.7
+pypdf==5.0.1
+python-dotenv==1.0.1
