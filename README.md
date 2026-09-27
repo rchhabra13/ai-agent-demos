@@ -21,9 +21,13 @@ Collection of AI agent experiments and demos.
 | autonomous-rag | Autonomous RAG with PgVector |
 | chat-with-pdf | Interactive PDF analysis |
 | chat-with-research-papers | ArXiv paper interaction |
+| clinical-insights-assistant | Agentic clinical trial analysis with cohort comparison and what-if scenarios |
 | corrective-rag | Multi-stage corrective RAG |
+| fhir-trial-agent | MCP server matching FHIR patient records to clinical trials |
 | gemma3-finetuning | Gemma 3 fine-tuning with Unsloth |
+| hedge-fund-analyst | Multi-agent equity analyst that writes a Buy, Hold or Sell memo |
 | llama3-2-finetuning | Llama 3.2 LoRA fine-tuning |
+| mcp-agentic-llm | MCP server that lets LLM agents call real APIs as tools |
 | multimodal-ai-agent | Video analysis with web search |
 | multimodal-coding-agent-team | Multi-agent coding assistant |
 | object-detection | Computer vision object detection |
